@@ -53,7 +53,9 @@ class _MapRuntime with WidgetsBindingObserver {
   }
 
   void acquire(Object owner) {
-    if (!_owners.add(owner)) return;
+    if (!_owners.add(owner)) {
+      return;
+    }
 
     if (_owners.length == 1) {
       WidgetsBinding.instance.addObserver(this);
@@ -63,7 +65,9 @@ class _MapRuntime with WidgetsBindingObserver {
   }
 
   void release(Object owner) {
-    if (!_owners.remove(owner)) return;
+    if (!_owners.remove(owner)) {
+      return;
+    }
 
     _sync();
 
@@ -80,7 +84,9 @@ class _MapRuntime with WidgetsBindingObserver {
         (state == null ||
             state == AppLifecycleState.resumed);
 
-    if (shouldStart == _started) return;
+    if (shouldStart == _started) {
+      return;
+    }
 
     if (shouldStart) {
       yfactory.mapkit.onStart();
@@ -114,7 +120,6 @@ class _NativeOrdersMap extends StatefulWidget {
 class _NativeOrdersMapState
     extends State<_NativeOrdersMap> {
   mk.MapObjectCollection? _houses;
-
   mk_image.ImageProvider? _icon;
 
   late final _HouseTapListener _listener =
@@ -140,11 +145,13 @@ class _NativeOrdersMapState
         widget.inputs.apiKey,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       _icon = mk_image.ImageProvider(
         _drawMarker,
-        id: 'beremsya-house-v4',
+        id: 'beremsya-house-v5',
       );
 
       _ready = true;
@@ -179,7 +186,9 @@ class _NativeOrdersMapState
         widget.inputs.isActive &&
         _routeVisible;
 
-    if (next == _active) return;
+    if (next == _active) {
+      return;
+    }
 
     if (next) {
       _MapRuntime.instance.acquire(this);
@@ -206,7 +215,9 @@ class _NativeOrdersMapState
   }
 
   void _onMapCreated(mk.MapWindow window) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     _houses =
         window.map.mapObjects.addCollection();
@@ -265,7 +276,9 @@ class _NativeOrdersMapState
 
     houses.clear();
 
-    if (!data.lengthsMatch) return;
+    if (!data.lengthsMatch) {
+      return;
+    }
 
     final seen = <String>{};
 
@@ -289,7 +302,7 @@ class _NativeOrdersMapState
         continue;
       }
 
-      final placemark = houses.addPlacemark()
+      houses.addPlacemark()
         ..geometry = mk.Point(
           latitude: lat,
           longitude: lon,
@@ -301,10 +314,10 @@ class _NativeOrdersMapState
         )
         ..setTextStyle(
           const mk.TextStyle(
-            size: 15,
+            size: 17,
             color: Colors.white,
-            outlineColor: Color(0x33000000),
-            outlineWidth: 1,
+            outlineColor: Color(0x66000000),
+            outlineWidth: 1.5,
             placement:
                 mk.TextStylePlacement.Center,
             textOptional: false,
@@ -314,144 +327,123 @@ class _NativeOrdersMapState
   }
 
   Future<ui.Image> _drawMarker() async {
-    const width = 58.0;
-    const height = 58.0;
+    const size = 64.0;
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
-    final bodyRect = Rect.fromLTRB(
-      5,
-      4,
-      width - 5,
-      height - 8,
-    );
-
-    final body = RRect.fromRectAndRadius(
-      bodyRect,
-      const Radius.circular(22),
-    );
-
-    // Мягкая тень.
-    canvas.drawRRect(
-      body.shift(
-        const Offset(0, 4),
-      ),
-      Paint()
-        ..color = const Color(0x45001E18)
-        ..maskFilter = const MaskFilter.blur(
-          BlurStyle.normal,
-          6,
-        ),
-    );
-
-    // Основной объёмный градиент.
-    canvas.drawRRect(
-      body,
-      Paint()
-        ..shader = ui.Gradient.linear(
-          const Offset(8, 5),
-          const Offset(50, 52),
-          const [
-            Color(0xFF48E4D0),
-            Color(0xFF16B6A2),
-            Color(0xFF087D70),
-          ],
-          const [
-            0.0,
-            0.5,
-            1.0,
-          ],
-        ),
-    );
-
-    // Затемнение снизу.
-    final lowerRect = Rect.fromLTRB(
-      7,
+    const center = Offset(
+      size / 2,
       30,
-      width - 7,
-      height - 9,
     );
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        lowerRect,
-        const Radius.circular(18),
-      ),
+    // Простая тень снизу.
+    canvas.drawCircle(
+      center + const Offset(0, 4),
+      27,
       Paint()
-        ..shader = ui.Gradient.linear(
-          const Offset(0, 30),
-          const Offset(0, 52),
-          const [
-            Color(0x00000000),
-            Color(0x2D003B32),
-          ],
+        ..color = const Color(
+          0x33000000,
         ),
     );
 
-    // Светлый кант.
-    canvas.drawRRect(
-      body,
+    // Белый внешний кант.
+    canvas.drawCircle(
+      center,
+      27,
+      Paint()..color = Colors.white,
+    );
+
+    // Нижняя тёмная подложка,
+    // чтобы появился эффект объёма.
+    canvas.drawCircle(
+      center + const Offset(0, 2),
+      24,
+      Paint()
+        ..color = const Color(
+          0xFF087165,
+        ),
+    );
+
+    // Основной бирюзовый круг.
+    canvas.drawCircle(
+      center,
+      24,
+      Paint()
+        ..color = const Color(
+          0xFF19B7A3,
+        ),
+    );
+
+    // Светлая верхняя зона.
+    canvas.drawOval(
+      const Rect.fromLTRB(
+        17,
+        9,
+        47,
+        29,
+      ),
+      Paint()
+        ..color = const Color(
+          0x554FFFF0,
+        ),
+    );
+
+    // Внутренняя светлая рамка.
+    canvas.drawCircle(
+      center,
+      22,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2
-        ..color = const Color(0xBFFFFFFF),
-    );
-
-    // Верхний блик.
-    final highlightRect = Rect.fromLTRB(
-      11,
-      8,
-      width - 14,
-      23,
-    );
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        highlightRect,
-        const Radius.circular(12),
-      ),
-      Paint()
-        ..shader = ui.Gradient.linear(
-          const Offset(0, 8),
-          const Offset(0, 24),
-          const [
-            Color(0xAFFFFFFF),
-            Color(0x20FFFFFF),
-            Color(0x00FFFFFF),
-          ],
-          const [
-            0.0,
-            0.6,
-            1.0,
-          ],
+        ..color = const Color(
+          0x80FFFFFF,
         ),
     );
 
-    // Фирменный оранжевый акцент.
-    final accentRect = Rect.fromCenter(
-      center: const Offset(
-        width / 2,
-        height - 7,
-      ),
-      width: 18,
-      height: 5,
+    // Нижний объёмный сегмент.
+    final lowerArcRect =
+        Rect.fromCircle(
+      center: center,
+      radius: 23,
     );
 
+    canvas.save();
+
+    canvas.clipRect(
+      const Rect.fromLTRB(
+        8,
+        31,
+        56,
+        56,
+      ),
+    );
+
+    canvas.drawCircle(
+      center,
+      23,
+      Paint()
+        ..color = const Color(
+          0x22002D27,
+        ),
+    );
+
+    canvas.restore();
+
+    // Фирменный оранжевый акцент.
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        accentRect,
+        const Rect.fromLTWH(
+          24,
+          55,
+          16,
+          5,
+        ),
         const Radius.circular(3),
       ),
       Paint()
-        ..shader = ui.Gradient.linear(
-          accentRect.centerLeft,
-          accentRect.centerRight,
-          const [
-            Color(0xFFFFB27B),
-            Color(0xFFFF7849),
-            Color(0xFFF4512A),
-          ],
+        ..color = const Color(
+          0xFFFF7045,
         ),
     );
 
@@ -460,8 +452,8 @@ class _NativeOrdersMapState
 
     try {
       return await picture.toImage(
-        width.round(),
-        height.round(),
+        size.round(),
+        size.round(),
       );
     } finally {
       picture.dispose();
@@ -480,7 +472,8 @@ class _NativeOrdersMapState
     _busy = true;
 
     try {
-      await widget.inputs.onHouseTap(id);
+      await widget.inputs
+          .onHouseTap(id);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.maybeOf(
@@ -504,13 +497,16 @@ class _NativeOrdersMapState
 
     if (houses != null &&
         houses.isValid()) {
-      houses.removeTapListener(_listener);
+      houses.removeTapListener(
+        _listener,
+      );
       houses.clear();
     }
 
     _houses = null;
 
-    _MapRuntime.instance.release(this);
+    _MapRuntime.instance
+        .release(this);
 
     super.dispose();
   }
@@ -524,14 +520,16 @@ class _NativeOrdersMapState
         child: Text(
           'Не удалось запустить карту. '
           'Перезапустите приложение.',
-          textAlign: TextAlign.center,
+          textAlign:
+              TextAlign.center,
         ),
       );
     }
 
     if (!_ready) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child:
+            CircularProgressIndicator(),
       );
     }
 
@@ -539,18 +537,24 @@ class _NativeOrdersMapState
       fit: StackFit.expand,
       children: [
         YandexMap(
-          onMapCreated: _onMapCreated,
+          onMapCreated:
+              _onMapCreated,
         ),
-        if (!widget.inputs.lengthsMatch)
+        if (!widget.inputs
+            .lengthsMatch)
           const Positioned(
             top: 12,
             left: 12,
             right: 12,
             child: Card(
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding:
+                    EdgeInsets.all(
+                  12,
+                ),
                 child: Text(
-                  'Не удалось загрузить отметки домов.',
+                  'Не удалось загрузить '
+                  'отметки домов.',
                 ),
               ),
             ),
@@ -564,20 +568,26 @@ class _HouseTapListener
     implements mk.MapObjectTapListener {
   _HouseTapListener(this.onTap);
 
-  final Future<void> Function(String) onTap;
+  final Future<void> Function(
+    String,
+  ) onTap;
 
   @override
   bool onMapObjectTap(
     mk.MapObject mapObject,
     mk.Point point,
   ) {
-    final id = mapObject.userData;
+    final id =
+        mapObject.userData;
 
-    if (id is! String || id.isEmpty) {
+    if (id is! String ||
+        id.isEmpty) {
       return false;
     }
 
-    unawaited(onTap(id));
+    unawaited(
+      onTap(id),
+    );
 
     return true;
   }
